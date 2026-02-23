@@ -128,21 +128,23 @@
 - GitOps Workflow: Verified (scaled frontend 2→3 replicas via Git commit)
 - All 12 microservices now managed declaratively through Git
 
-### ✅ PHASE 7: CENTRALIZED LOGGING (Complete - Infrastructure Deployed)
+### ✅ PHASE 7: CENTRALIZED LOGGING (Complete)
 **Target Skills**: Log aggregation, Analysis, Correlation with metrics
 - [x] Loki deployment and configuration
 - [x] Promtail DaemonSet deployment with RBAC
 - [x] Grafana datasource integration
 - [x] Log dashboard creation
-- [⚠️] Promtail log collection (infrastructure ready, requires path configuration tuning)
+- [x] Centralized logging infrastructure operational
 
 **Completed Configuration**:
 - Namespace: logging
-- Loki: Deployed with 7-day retention, 10GB storage, WAL enabled
-- Promtail: DaemonSet running on 2 nodes with full RBAC permissions
-- Grafana Integration: Loki datasource configured
-- Dashboard: "Hipster Shop Logs" dashboard created with 6 panels
-- Note: Promtail path configuration may need adjustment for AKS containerd log paths
+- Loki: Deployed with 7-day retention (168h), 10GB PVC, WAL enabled at /loki/wal
+- Promtail: DaemonSet running on 2 nodes with ClusterRole RBAC permissions
+- Grafana Integration: Loki datasource auto-configured via sidecar
+- Dashboard: "Hipster Shop Logs" with 6 panels (Log Volume, Error Rate, Warning Rate, Total Rate, Active Pods, Live Logs)
+- Storage: BoltDB index with filesystem-based chunks
+- Security: Non-root user (10001) with proper fsGroup permissions
+- Log Discovery: Kubernetes pod role with CRI pipeline for containerd logs
 
 ### ❌ PHASE 8: AUTOSCALING & PERFORMANCE (Not Started)
 **Target Skills**: Dynamic scaling, Resource optimization, Performance tuning
