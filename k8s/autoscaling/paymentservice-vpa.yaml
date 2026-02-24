@@ -1,0 +1,21 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: paymentservice-vpa
+  namespace: hipster-shop
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: paymentservice
+  updatePolicy:
+    updateMode: "Off"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: server
+      minAllowed:
+        cpu: 50m
+        memory: 64Mi
+      maxAllowed:
+        cpu: 300m
+        memory: 256Mi
