@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istio-tracing
+  namespace: istio-system
+data:
+  mesh: |
+    defaultConfig:
+      tracing:
+        zipkin:
+          address: jaeger-collector.tracing.svc.cluster.local:9411
+        sampling: 100.0
+    enableTracing: true
