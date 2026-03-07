@@ -1,0 +1,78 @@
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+
+grafana:
+  enabled: true
+  adminPassword: admin
+  service:
+    type: LoadBalancer
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'SLACK_WEBHOOK_URL_HERE'  # Replace with your Slack webhook URL
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: 'slack-notifications'
+      routes:
+      - match:
+          severity: critical
+        receiver: 'slack-notifications'
+        continue: true
+      - match:
+          severity: warning
+        receiver: 'slack-notifications'
+    receivers:
+    - name: 'slack-notifications'
+      slack_configs:
+      - channel: '#hipster-shop'
+        title: '🚨 {{ .GroupLabels.alertname }}'
+        text: >-
+          *Summary:* {{ .CommonAnnotations.summary }}
+          
+          *Description:* {{ .CommonAnnotations.description }}
+          
+          *Severity:* {{ .CommonLabels.severity }}
+          
+          *Details:*
+          {{ range .Alerts }}
+            • *Alert:* {{ .Labels.alertname }}
+            • *Status:* {{ .Status }}
+            • *Starts:* {{ .StartsAt }}
+          {{ end }}
+        send_resolved: true

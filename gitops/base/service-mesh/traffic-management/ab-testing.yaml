@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: frontend-ab-testing
+  namespace: hipster-shop
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - hipster-gateway
+  http:
+  - match:
+    - headers:
+        user-type:
+          exact: "beta-tester"
+    route:
+    - destination:
+        host: frontend
+        subset: v2
+  - route:
+    - destination:
+        host: frontend
+        subset: v1

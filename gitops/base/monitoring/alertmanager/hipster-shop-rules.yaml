@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: hipster-shop-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: hipster-shop-alerts
+    interval: 30s
+    rules:
+    - alert: HighMemoryUsage
+      expr: container_memory_usage_bytes{namespace="hipster-shop", container!=""} > 500000000
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage detected"
+        description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is using {{ $value | humanize }}B of memory"
+    
+    - alert: PodRestartingTooOften
+      expr: rate(kube_pod_container_status_restarts_total{namespace="hipster-shop"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod restarting frequently"
+        description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"

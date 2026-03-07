@@ -1,0 +1,44 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-within-namespace-istio
+  namespace: hipster-shop
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow all traffic within namespace (Istio handles security with mTLS)
+  - from:
+    - podSelector: {}
+  # Allow from istio-system
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: istio-system
+  # Allow external traffic to frontend
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow to istio-system
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: istio-system
+  # Allow all within namespace
+  - to:
+    - podSelector: {}
+  # Allow external egress (for currency/email services)
+  - to:
+    - namespaceSelector: {}

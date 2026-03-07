@@ -1,0 +1,32 @@
+---
+# Apply baseline pod security standard to hipster-shop namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hipster-shop
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+
+---
+# Apply restricted pod security standard to security namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: security
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+
+---
+# Apply restricted pod security standard to monitoring namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
