@@ -4,16 +4,28 @@ kind: Kustomization
 namespace: hipster-shop
 
 resources:
-- frontend.yaml
-- cartservice.yaml
-- productcatalogservice.yaml
-- currencyservice.yaml
-- paymentservice.yaml
-- shippingservice.yaml
-- emailservice.yaml
-- checkoutservice.yaml
-- recommendationservice.yaml
-- loadgenerator.yaml
+  # Application manifests
+  - frontend.yaml
+  - cartservice.yaml
+  - productcatalogservice.yaml
+  - currencyservice.yaml
+  - paymentservice.yaml
+  - shippingservice.yaml
+  - emailservice.yaml
+  - checkoutservice.yaml
+  - recommendationservice.yaml
+  - loadgenerator.yaml
+  
+  # Autoscaling resources
+  - ../../../k8s/autoscaling/recommendation-hpa.yaml
+  - ../../../k8s/autoscaling/frontend-hpa.yaml
+  - ../../../k8s/autoscaling/productcatalog-hpa.yaml
+  - ../../../k8s/autoscaling/checkoutservice-hpa.yaml
+  - ../../../k8s/autoscaling/cartservice-vpa.yaml
+  - ../../../k8s/autoscaling/emailservice-vpa.yaml
+  - ../../../k8s/autoscaling/paymentservice-vpa.yaml
+  - ../../../k8s/autoscaling/frontend-pdb.yaml
+  - ../../../k8s/autoscaling/services-pdb.yaml
 
 commonLabels:
   app.kubernetes.io/name: hipster-shop
