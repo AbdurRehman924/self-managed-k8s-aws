@@ -31,6 +31,15 @@ resource "aws_security_group" "control_plane" {
     self        = true
   }
 
+  # Calico BGP
+  ingress {
+    description = "Calico BGP between control plane nodes"
+    from_port   = 179
+    to_port     = 179
+    protocol    = "tcp"
+    self        = true
+  }
+
   # SSH from bastion
   ingress {
     description     = "SSH from bastion"
@@ -38,6 +47,15 @@ resource "aws_security_group" "control_plane" {
     to_port         = 22
     protocol        = "tcp"
     security_groups = [aws_security_group.bastion.id]
+  }
+
+  # SSH between control plane nodes (for kubeadm join)
+  ingress {
+    description = "SSH between control plane nodes"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    self        = true
   }
 
   # Allow all outbound
@@ -78,6 +96,15 @@ resource "aws_security_group" "worker" {
     self        = true
   }
 
+  # Calico BGP between workers
+  ingress {
+    description = "Calico BGP between worker nodes"
+    from_port   = 179
+    to_port     = 179
+    protocol    = "tcp"
+    self        = true
+  }
+
   # SSH from bastion
   ingress {
     description     = "SSH from bastion"
@@ -85,6 +112,15 @@ resource "aws_security_group" "worker" {
     to_port         = 22
     protocol        = "tcp"
     security_groups = [aws_security_group.bastion.id]
+  }
+
+  # SSH from control plane nodes (for kubeadm join)
+  ingress {
+    description     = "SSH from control plane"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.control_plane.id]
   }
 
   # Allow all outbound
@@ -178,4 +214,24 @@ resource "aws_security_group_rule" "worker_from_control_plane_kubelet" {
   security_group_id        = aws_security_group.worker.id
   source_security_group_id = aws_security_group.control_plane.id
   description              = "Kubelet API from control plane"
+}
+
+resource "aws_security_group_rule" "control_plane_bgp_from_workers" {
+  type                     = "ingress"
+  from_port                = 179
+  to_port                  = 179
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.control_plane.id
+  source_security_group_id = aws_security_group.worker.id
+  description              = "Calico BGP from workers"
+}
+
+resource "aws_security_group_rule" "worker_bgp_from_control_plane" {
+  type                     = "ingress"
+  from_port                = 179
+  to_port                  = 179
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.worker.id
+  source_security_group_id = aws_security_group.control_plane.id
+  description              = "Calico BGP from control plane"
 }
