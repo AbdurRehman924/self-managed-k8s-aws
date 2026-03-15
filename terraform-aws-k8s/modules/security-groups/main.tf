@@ -31,14 +31,6 @@ resource "aws_security_group" "control_plane" {
     self        = true
   }
 
-  ingress {
-    description     = "Kubelet API from workers"
-    from_port       = 10250
-    to_port         = 10250
-    protocol        = "tcp"
-    security_groups = [aws_security_group.worker.id]
-  }
-
   # SSH from bastion
   ingress {
     description     = "SSH from bastion"
@@ -67,15 +59,6 @@ resource "aws_security_group" "worker" {
   name        = "${var.cluster_name}-worker-sg"
   description = "Security group for Kubernetes worker nodes"
   vpc_id      = var.vpc_id
-
-  # Kubelet API from control plane
-  ingress {
-    description     = "Kubelet API from control plane"
-    from_port       = 10250
-    to_port         = 10250
-    protocol        = "tcp"
-    security_groups = [aws_security_group.control_plane.id]
-  }
 
   # NodePort Services
   ingress {
@@ -174,4 +157,25 @@ resource "aws_security_group" "nlb" {
   tags = {
     Name = "${var.cluster_name}-nlb-sg"
   }
+}
+
+# Cross-reference rules (separated to break the cycle)
+resource "aws_security_group_rule" "control_plane_from_workers_kubelet" {
+  type                     = "ingress"
+  from_port                = 10250
+  to_port                  = 10250
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.control_plane.id
+  source_security_group_id = aws_security_group.worker.id
+  description              = "Kubelet API from workers"
+}
+
+resource "aws_security_group_rule" "worker_from_control_plane_kubelet" {
+  type                     = "ingress"
+  from_port                = 10250
+  to_port                  = 10250
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.worker.id
+  source_security_group_id = aws_security_group.control_plane.id
+  description              = "Kubelet API from control plane"
 }
