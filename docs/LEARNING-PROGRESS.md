@@ -78,9 +78,9 @@
 - [x] Join additional control plane nodes (HA setup)
 - [x] Join worker nodes to cluster
 - [x] Verify etcd cluster health (3 members)
-- [ ] Install AWS Cloud Controller Manager
+- [x] Install AWS Cloud Controller Manager
 - [ ] Install AWS EBS CSI Driver
-- [ ] Configure kubectl on local machine
+- [x] Configure kubectl on local machine
 - [ ] Create default StorageClass (gp3)
 
 **Completed Configuration**:
@@ -114,23 +114,26 @@
 
 ---
 
-### 🌐 PHASE 4: INGRESS & EXTERNAL ACCESS
-**Target Skills**: Ingress controllers (NGINX), AWS Load Balancer Controller, DNS (Route53), TLS certificates (cert-manager)
-- [ ] Install NGINX Ingress Controller
-- [ ] Install AWS Load Balancer Controller
-- [ ] Create Ingress resource for frontend
-- [ ] Verify Application Load Balancer creation
+### ✅ PHASE 4: INGRESS & EXTERNAL ACCESS (Complete)
+**Target Skills**: Ingress controllers (NGINX), AWS Cloud Controller Manager, DNS (Route53), TLS certificates (cert-manager)
+- [x] Install NGINX Ingress Controller
+- [x] Install AWS Cloud Controller Manager (CCM)
+- [x] Configure --cloud-provider=external on all 6 nodes
+- [x] Patch ProviderIDs on all nodes
+- [x] Create Ingress resource for frontend
+- [x] Verify NLB creation and healthy targets
 - [ ] Configure Route53 DNS (optional)
 - [ ] Install cert-manager
 - [ ] Configure Let's Encrypt ClusterIssuer
 - [ ] Enable TLS for frontend
 
 **Completed Configuration**:
-- Ingress Controller: 
-- ALB DNS: 
-- Domain Name: 
-- TLS Certificate: 
-- External Access: 
+- Ingress Controller: NGINX (ingress-nginx namespace)
+- NLB DNS: ab71167c1690e4132be7cec1779c70ee-adc760f004e3f2a9.elb.us-east-1.amazonaws.com
+- CCM: aws-cloud-controller-manager (3 pods on control plane nodes)
+- Domain Name: -
+- TLS Certificate: -
+- External Access: ✅ http://ab71167c1690e4132be7cec1779c70ee-adc760f004e3f2a9.elb.us-east-1.amazonaws.com
 
 ---
 
@@ -305,10 +308,10 @@
 ---
 
 ## 🎯 CURRENT STATUS
-**Platform State**: Hipster Shop fully deployed on 6-node K8s cluster
-**Current Phase**: Phase 4 - Ingress & External Access
-**Next Step**: Install NGINX Ingress Controller
-**Progress**: 3 of 12 phases complete (25%)
+**Platform State**: Hipster Shop publicly accessible via AWS NLB
+**Current Phase**: Phase 5 - Observability & Monitoring
+**Next Step**: Deploy Prometheus Operator
+**Progress**: 4 of 12 phases complete (33%)
 
 **Estimated Time to Complete**: 60-75 hours (8-12 weeks at 2-3 hours/day)
 
