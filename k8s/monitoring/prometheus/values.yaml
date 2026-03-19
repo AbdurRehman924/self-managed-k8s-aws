@@ -4,6 +4,7 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
+          storageClassName: gp3
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
@@ -20,7 +21,13 @@ grafana:
   enabled: true
   adminPassword: admin
   service:
-    type: LoadBalancer
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    path: /
+    hosts:
+      - grafana.local
   resources:
     requests:
       cpu: 100m
@@ -28,10 +35,22 @@ grafana:
     limits:
       cpu: 500m
       memory: 512Mi
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    size: 5Gi
 
 alertmanager:
   enabled: true
   alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
     resources:
       requests:
         cpu: 50m
@@ -42,37 +61,11 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
-      slack_api_url: 'SLACK_WEBHOOK_URL_HERE'  # Replace with your Slack webhook URL
     route:
       group_by: ['alertname', 'cluster', 'service']
       group_wait: 10s
       group_interval: 10s
       repeat_interval: 12h
-      receiver: 'slack-notifications'
-      routes:
-      - match:
-          severity: critical
-        receiver: 'slack-notifications'
-        continue: true
-      - match:
-          severity: warning
-        receiver: 'slack-notifications'
+      receiver: 'null'
     receivers:
-    - name: 'slack-notifications'
-      slack_configs:
-      - channel: '#hipster-shop'
-        title: '🚨 {{ .GroupLabels.alertname }}'
-        text: >-
-          *Summary:* {{ .CommonAnnotations.summary }}
-          
-          *Description:* {{ .CommonAnnotations.description }}
-          
-          *Severity:* {{ .CommonLabels.severity }}
-          
-          *Details:*
-          {{ range .Alerts }}
-            • *Alert:* {{ .Labels.alertname }}
-            • *Status:* {{ .Status }}
-            • *Starts:* {{ .StartsAt }}
-          {{ end }}
-        send_resolved: true
+    - name: 'null'
