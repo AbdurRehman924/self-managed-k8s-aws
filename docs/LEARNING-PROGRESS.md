@@ -79,9 +79,9 @@
 - [x] Join worker nodes to cluster
 - [x] Verify etcd cluster health (3 members)
 - [x] Install AWS Cloud Controller Manager
-- [ ] Install AWS EBS CSI Driver
+- [x] Install AWS EBS CSI Driver
 - [x] Configure kubectl on local machine
-- [ ] Create default StorageClass (gp3)
+- [x] Create default StorageClass (gp3)
 
 **Completed Configuration**:
 - Kubernetes Version: v1.29.15
@@ -89,8 +89,15 @@
 - Worker Nodes: ip-10-0-10-239, ip-10-0-11-47, ip-10-0-12-33
 - CNI Plugin: Calico v3.27.0 (BGP mode)
 - etcd Members: 3 (healthy)
-- Cloud Provider: -
-- StorageClass: -
+- Cloud Provider: AWS CCM (aws-cloud-controller-manager)
+- StorageClass: gp3 (default, encrypted, WaitForFirstConsumer)
+
+**Problems Faced & Solved**:
+- ❌ **CCM manifest flag placement**: Added `--cloud-provider=external` before the binary name in kube-apiserver.yaml on node 2 → caused CrashLoopBackOff. Fixed by moving the flag after the binary name.
+- ❌ **kubelet config path**: Expected `/etc/systemd/system/kubelet.service.d/10-kubeadm.conf` but actual path was `/etc/default/kubelet` on Ubuntu 22.04.
+- ❌ **Nodes had no ProviderID**: Adding `--cloud-provider=external` after cluster was already running means existing nodes never got their AWS ProviderID set. Fixed by manually patching all 6 nodes with `kubectl patch node`.
+- ❌ **Port 10250 missing from worker SG**: Terraform defined the rule but it wasn't applied in AWS. EBS CSI controller couldn't reach kubelet. Fixed by adding the rule via AWS CLI.
+- ❌ **EBS CSI IAM permissions**: Worker role was missing `CreateVolume`, `DeleteVolume`, `CreateTags` and other permissions. Fixed by updating the inline policy.
 
 ---
 
@@ -134,6 +141,12 @@
 - Domain Name: -
 - TLS Certificate: -
 - External Access: ✅ http://ab71167c1690e4132be7cec1779c70ee-adc760f004e3f2a9.elb.us-east-1.amazonaws.com
+
+**Problems Faced & Solved**:
+- ❌ **NLB stuck at `<pending>`**: No CCM installed — Kubernetes had no way to call AWS APIs to provision the NLB. Fixed by installing AWS CCM and adding `--cloud-provider=external` to all control plane components and kubelet.
+- ❌ **NLB had no targets**: Nodes had no ProviderID so CCM couldn't map K8s nodes to EC2 instances. Fixed by manually patching all 6 nodes with their AWS ProviderID.
+- ❌ **App returned 500 / DNS i/o timeout**: After kubelet restarts, Calico BGP routes between nodes broke. Frontend pods on workers couldn't reach CoreDNS on control plane. Fixed by restarting Calico DaemonSet and CoreDNS.
+- ❌ **Admission webhook timeout**: NGINX validation webhook blocked ingress creation. Fixed by deleting the `ingress-nginx-admission` ValidatingWebhookConfiguration.
 
 ---
 
