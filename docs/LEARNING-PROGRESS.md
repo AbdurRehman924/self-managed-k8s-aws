@@ -197,23 +197,28 @@
 
 ---
 
-### 📝 PHASE 7: CENTRALIZED LOGGING
+### ✅ PHASE 7: CENTRALIZED LOGGING (Complete)
 **Target Skills**: Loki, Promtail, Log aggregation, LogQL, Log-based alerts
-- [ ] Deploy Loki with persistent storage
-- [ ] Deploy Promtail DaemonSet
-- [ ] Configure Grafana Loki datasource
-- [ ] Create log dashboard (Log Volume, Error Rate, Live Logs)
+- [x] Deploy Loki with persistent storage
+- [x] Deploy Promtail DaemonSet
+- [x] Configure Grafana Loki datasource
+- [x] Create log dashboard (Log Volume, Error Rate, Live Logs)
 - [ ] Set up log-based alerts
-- [ ] Test log querying with LogQL
+- [x] Test log querying with LogQL
 
 **Completed Configuration**:
-- Namespace: 
-- Loki: 
-- Promtail: 
-- Grafana Integration: 
-- Dashboard: 
-- Storage: 
-- Log Retention: 
+- Namespace: logging
+- Loki: loki (grafana/loki:2.9.3, 10Gi gp3 PVC, 7-day retention, 32MB/s ingestion limit)
+- Promtail: DaemonSet on all 3 worker nodes (grafana/promtail:2.9.3), static glob /var/log/pods/*/*/*.log with pipeline label extraction
+- Grafana Integration: Loki datasource configured (http://loki.logging.svc.cluster.local:3100)
+- Dashboard: grafana-logs-dashboard applied
+- Storage: 10Gi gp3 EBS
+- Log Retention: 7 days
+
+**Problems Faced & Solved**:
+- ❌ **Promtail targets=0 with kubernetes_sd**: `__path__` relabeling with glob patterns doesn't work in Promtail 2.9 — the `*` wildcard in relabel `replacement` is treated literally. Fixed by using a static glob `/var/log/pods/*/*/*.log` and extracting labels via a regex pipeline stage instead.
+- ❌ **429 rate limit on Loki**: Static glob caused a burst of all historical logs at startup. Fixed by raising `ingestion_rate_mb: 32` and `ingestion_burst_size_mb: 64` in Loki config.
+- ❌ **Pod UID mismatch**: Kubernetes pod UID from API doesn't match the sandbox UID used in the `/var/log/pods/` directory name (containerd assigns its own UID). This is why `*$uid*` glob patterns fail.
 
 ---
 
@@ -324,10 +329,10 @@
 ---
 
 ## 🎯 CURRENT STATUS
-**Platform State**: Full security stack with runtime threat detection and vulnerability scanning
-**Current Phase**: Phase 7 - Centralized Logging
-**Next Step**: Deploy Loki
-**Progress**: 6 of 12 phases complete (50%)
+**Platform State**: Full observability stack — metrics, alerting, and centralized logging
+**Current Phase**: Phase 8 - Autoscaling & Performance
+**Next Step**: Deploy Metrics Server
+**Progress**: 7 of 12 phases complete (58%)
 
 **Estimated Time to Complete**: 60-75 hours (8-12 weeks at 2-3 hours/day)
 
