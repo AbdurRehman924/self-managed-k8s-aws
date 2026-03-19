@@ -235,3 +235,23 @@ resource "aws_security_group_rule" "worker_bgp_from_control_plane" {
   source_security_group_id = aws_security_group.control_plane.id
   description              = "Calico BGP from control plane"
 }
+
+resource "aws_security_group_rule" "control_plane_ipip_from_workers" {
+  type                     = "ingress"
+  from_port                = -1
+  to_port                  = -1
+  protocol                 = "4"
+  security_group_id        = aws_security_group.control_plane.id
+  source_security_group_id = aws_security_group.worker.id
+  description              = "Calico IPIP from workers"
+}
+
+resource "aws_security_group_rule" "worker_ipip_from_control_plane" {
+  type                     = "ingress"
+  from_port                = -1
+  to_port                  = -1
+  protocol                 = "4"
+  security_group_id        = aws_security_group.worker.id
+  source_security_group_id = aws_security_group.control_plane.id
+  description              = "Calico IPIP from control plane"
+}
