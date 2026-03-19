@@ -159,8 +159,8 @@
 - [x] Configure custom alert rules (HighMemoryUsage, PodRestartingTooOften)
 - [x] Verify persistent storage (gp3 EBS volumes)
 - [ ] Create custom dashboards (CPU, Memory, Network)
-- [ ] Set up Slack/email notifications
-- [ ] Test alerting workflow
+- [x] Set up Slack/email notifications
+- [x] Test alerting workflow
 
 **Completed Configuration**:
 - Namespace: monitoring
@@ -169,7 +169,7 @@
 - AlertManager: alertmanager-prometheus-kube-prometheus-alertmanager-0 (2Gi gp3)
 - Dashboards: Default Kubernetes dashboards (200+)
 - Alert Rules: 35 default + 2 custom (HighMemoryUsage, PodRestartingTooOften)
-- Notification Channel: -
+- Notification Channel: Slack #hipster-shop (webhook configured, tested ✅)
 
 ---
 
