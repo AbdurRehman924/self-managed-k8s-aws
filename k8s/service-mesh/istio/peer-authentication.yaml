@@ -1,20 +1,8 @@
-apiVersion: security.istio.io/v1
+apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
-  name: default-mtls
+  name: default
   namespace: hipster-shop
 spec:
   mtls:
     mode: STRICT
----
-apiVersion: security.istio.io/v1
-kind: PeerAuthentication
-metadata:
-  name: frontend-permissive
-  namespace: hipster-shop
-spec:
-  selector:
-    matchLabels:
-      app: frontend
-  mtls:
-    mode: PERMISSIVE
