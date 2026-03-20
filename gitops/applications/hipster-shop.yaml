@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/AbdurRehman924/hipster-shop.git
+    repoURL: https://github.com/AbdurRehman924/self-managed-k8s-aws.git
     targetRevision: main
     path: k8s/applications/hipster-shop
   destination:

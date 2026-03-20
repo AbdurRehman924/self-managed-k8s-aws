@@ -16,7 +16,6 @@ resources:
   - recommendationservice.yaml
   - loadgenerator.yaml
 
-commonLabels:
-  app.kubernetes.io/name: hipster-shop
-  app.kubernetes.io/version: v0.10.0
+commonAnnotations:
   managed-by: argocd
+  app.kubernetes.io/version: v0.10.0
