@@ -247,23 +247,27 @@
 
 ---
 
-### 🔄 PHASE 9: GITOPS & AUTOMATION
+### ✅ PHASE 9: GITOPS & AUTOMATION (Complete)
 **Target Skills**: ArgoCD, Git-based deployments, Declarative configuration, Auto-sync, Self-heal
-- [ ] Deploy ArgoCD
-- [ ] Configure Git repository connection
-- [ ] Create ArgoCD Application for hipster-shop
-- [ ] Enable auto-sync and self-heal
-- [ ] Test GitOps workflow (commit → auto-deploy)
+- [x] Deploy ArgoCD
+- [x] Configure Git repository connection
+- [x] Create ArgoCD Application for hipster-shop
+- [x] Enable auto-sync and self-heal
+- [x] Test GitOps workflow (commit → auto-deploy)
 - [ ] Configure ArgoCD notifications
-- [ ] Access ArgoCD UI
+- [x] Access ArgoCD UI
 
 **Completed Configuration**:
-- Namespace: 
-- ArgoCD Version: 
-- Repository: 
-- Applications: 
-- Sync Policy: 
-- ArgoCD UI: 
+- Namespace: argocd
+- ArgoCD Version: stable (latest)
+- Repository: https://github.com/AbdurRehman924/self-managed-k8s-aws.git
+- Applications: hipster-shop, monitoring, logging, security, autoscaling, service-mesh, tracing (7 total)
+- Sync Policy: automated (prune: true, selfHeal: true)
+- ArgoCD UI: https://localhost:8080 (port-forward)
+
+**Problems Faced & Solved**:
+- ❌ **repoURL mismatch**: All gitops manifests pointed to old `hipster-shop` repo. Fixed by updating all to `self-managed-k8s-aws`.
+- ❌ **Deployments OutOfSync / immutable selector**: `commonLabels` in kustomization.yaml was injecting labels into `spec.selector.matchLabels`, which Kubernetes rejects as immutable on existing Deployments. Fixed by replacing `commonLabels` with `commonAnnotations`.
 
 ---
 
@@ -333,10 +337,10 @@
 ---
 
 ## 🎯 CURRENT STATUS
-**Platform State**: Full observability + autoscaling stack
-**Current Phase**: Phase 9 - GitOps & Automation
-**Next Step**: Deploy ArgoCD
-**Progress**: 8 of 12 phases complete (67%)
+**Platform State**: Full observability + autoscaling + GitOps stack
+**Current Phase**: Phase 10 - Service Mesh (Istio)
+**Next Step**: Install Istio control plane
+**Progress**: 9 of 12 phases complete (75%)
 
 **Estimated Time to Complete**: 60-75 hours (8-12 weeks at 2-3 hours/day)
 
