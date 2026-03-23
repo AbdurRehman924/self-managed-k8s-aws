@@ -300,23 +300,29 @@
 
 ---
 
-### 🔍 PHASE 11: DISTRIBUTED TRACING
+### ✅ PHASE 11: DISTRIBUTED TRACING (Complete)
 **Target Skills**: Jaeger, OpenTelemetry, Request tracing, Performance analysis, Trace correlation
-- [ ] Deploy Jaeger
-- [ ] Configure Istio tracing integration
-- [ ] Enable trace sampling (100% for learning)
-- [ ] Generate test traffic
-- [ ] Analyze request traces
+- [x] Deploy Jaeger
+- [x] Configure Istio tracing integration
+- [x] Enable trace sampling (100% for learning)
+- [x] Generate test traffic
+- [x] Analyze request traces
 - [ ] Correlate traces with metrics and logs
 - [ ] Identify performance bottlenecks
 
 **Completed Configuration**:
-- Namespace: 
-- Jaeger Version: 
-- Istio Integration: 
-- Sampling Rate: 
-- Services Traced: 
-- Jaeger UI: 
+- Namespace: tracing
+- Jaeger Version: all-in-one (jaegertracing/all-in-one:latest)
+- Istio Integration: extensionProviders (zipkin endpoint port 9411), Telemetry resource
+- Sampling Rate: 100%
+- Services Traced: 10 (frontend, cartservice, currencyservice, productcatalogservice, emailservice, adservice, loadgenerator, checkoutservice, shippingservice, paymentservice)
+- Jaeger UI: kubectl port-forward svc/jaeger-query -n tracing 16686:80
+
+**Problems Faced & Solved**:
+- ❌ **Spans not appearing in Jaeger**: Istio tracing config used old `meshConfig.defaultConfig.tracing` field. Fixed by using `extensionProviders` + `Telemetry` resource (Istio 1.13+ approach).
+- ❌ **App returning 500 after NetworkPolicy changes**: Multiple NetworkPolicy edits during debugging caused port 7070 (cartservice) to be dropped from `frontend-allow-backend` egress. Root cause found via Calico iptables chain `cali-fw-cali93eb8128ba9` showing 45 packets dropped by egress policy. Fixed by re-adding port 7070.
+- ❌ **Cross-node traffic investigation**: Suspected IPIP tunnel issue between ip-10-0-10-239 and ip-10-0-12-33. tcpdump on destination node showed SYN packets arriving on frontend veth but not forwarded — confirmed as iptables DROP in Calico egress chain, not a tunnel issue.
+- ❌ **mTLS STRICT blocking NGINX ingress**: NGINX ingress controller has no Istio sidecar, so mTLS STRICT rejected its connections to frontend. Fixed by setting hipster-shop namespace PeerAuthentication to PERMISSIVE.
 
 ---
 
@@ -344,10 +350,10 @@
 ---
 
 ## 🎯 CURRENT STATUS
-**Platform State**: Full observability + autoscaling + GitOps + Service Mesh stack
-**Current Phase**: Phase 11 - Distributed Tracing
-**Next Step**: Deploy Jaeger
-**Progress**: 10 of 12 phases complete (83%)
+**Platform State**: Full observability + autoscaling + GitOps + Service Mesh + Distributed Tracing stack
+**Current Phase**: Phase 12 - Backup & Disaster Recovery
+**Next Step**: Create S3 bucket and deploy Velero
+**Progress**: 11 of 12 phases complete (92%)
 
 **Estimated Time to Complete**: 60-75 hours (8-12 weeks at 2-3 hours/day)
 
