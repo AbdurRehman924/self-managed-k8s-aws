@@ -1,21 +1,45 @@
 # Self-Managed Kubernetes on AWS
 
-> Provisioned and operated a production-grade, self-managed Kubernetes cluster on AWS EC2 — without EKS. Built the full infrastructure from scratch using Terraform, bootstrapped nodes with kubeadm, and deployed a complete cloud-native observability and security stack.
+A self-managed Kubernetes cluster on AWS EC2 — built without EKS. Infrastructure provisioned with Terraform, nodes bootstrapped with kubeadm, and a full cloud-native stack deployed on top.
 
 ---
 
-## What This Project Demonstrates
+## Project Structure
 
-- Designing multi-AZ AWS VPC networking (public/private subnets, NAT gateway, IGW)
-- Provisioning EC2-based Kubernetes control plane (HA, 3 nodes) and worker nodes behind a Network Load Balancer
-- Bootstrapping Kubernetes from scratch using `kubeadm` — containerd runtime, Calico CNI, systemd cgroup driver
-- Writing modular Terraform (7 modules: vpc, security-groups, iam, ec2-control-plane, ec2-workers, bastion, load-balancer)
-- Securing cluster access via bastion host with SSH ProxyJump
-- Deploying production observability: Prometheus + Grafana + Loki + Jaeger
-- Implementing service mesh (Istio) with mTLS, canary deployments, circuit breakers, and rate limiting
-- GitOps with ArgoCD managing all workloads declaratively
-- Runtime security with Falco custom rules and Trivy image scanning
-- Backup and disaster recovery with Velero
+```
+self-managed-k8s-aws/
+├── terraform-aws-k8s/
+│   ├── main.tf                  # Root module wiring
+│   ├── variables.tf
+│   ├── outputs.tf
+│   └── modules/
+│       ├── vpc/                 # VPC, subnets, IGW, NAT, route tables
+│       ├── security-groups/     # SGs for control-plane, workers, bastion, NLB
+│       ├── iam/                 # IAM roles + instance profiles
+│       ├── ec2-control-plane/   # 3 control plane EC2 instances
+│       ├── ec2-workers/         # 3 worker EC2 instances
+│       ├── bastion/             # Bastion host (SSH jump server)
+│       └── load-balancer/       # NLB fronting the Kubernetes API
+├── k8s/
+│   ├── applications/hipster-shop/ # 11 microservice manifests
+│   ├── monitoring/              # Prometheus + Alertmanager
+│   ├── logging/                 # Loki + Promtail
+│   ├── service-mesh/            # Istio + traffic management
+│   ├── security/                # Falco, Trivy, Network Policies
+│   ├── autoscaling/             # HPA, VPA, PDB
+│   ├── backup/                  # Velero
+│   ├── tracing/                 # Jaeger
+│   ├── storage/                 # GP3 StorageClass
+│   ├── ingress/                 # NGINX Ingress
+│   └── gitops/                  # ArgoCD app manifest
+├── gitops/applications/         # ArgoCD Application CRDs
+├── scripts/
+│   ├── bootstrap-nodes.sh       # Install kubeadm/kubelet/kubectl on all nodes
+│   └── cluster.sh               # Start/stop EC2 instances
+└── docs/
+    ├── LEARNING-PROGRESS.md
+    └── Traffic-flow.md
+```
 
 ---
 
@@ -51,60 +75,45 @@
               └─────────────────────────┘
 ```
 
-**Networking:** 3 public subnets (control plane + bastion) + 3 private subnets (workers) across 3 AZs. Workers reach the internet via NAT gateway. SSH access to all nodes is through the bastion using ProxyJump.
+3 public subnets (control plane + bastion) + 3 private subnets (workers) across 3 AZs. Workers reach the internet via NAT gateway. All SSH access goes through the bastion using ProxyJump.
 
 ---
 
-## Infrastructure (Terraform)
-
-```
-terraform-aws-k8s/
-├── main.tf                  # Root module wiring
-├── variables.tf
-├── outputs.tf
-└── modules/
-    ├── vpc/                 # VPC, subnets, IGW, NAT, route tables
-    ├── security-groups/     # SGs for control-plane, workers, bastion, NLB
-    ├── iam/                 # IAM roles + instance profiles for EC2
-    ├── ec2-control-plane/   # 3 control plane EC2 instances
-    ├── ec2-workers/         # 3 worker EC2 instances
-    ├── bastion/             # Bastion host
-    └── load-balancer/       # NLB fronting the Kubernetes API
-```
+## Infrastructure
 
 ```bash
 cd terraform-aws-k8s
 terraform init
 terraform apply -var="key_name=your-key"
-
-# Outputs: bastion IP, control plane IPs, worker IPs, NLB DNS
 ```
+
+Outputs: bastion public IP, control plane private IPs, worker private IPs, NLB DNS name.
 
 ---
 
 ## Cluster Bootstrap
 
-After Terraform provisions the EC2 instances, `scripts/bootstrap-nodes.sh` installs the Kubernetes stack on all 6 nodes in parallel over SSH via the bastion:
+`scripts/bootstrap-nodes.sh` SSHs into all 6 nodes in parallel via the bastion and installs the full Kubernetes stack:
 
 - Disables swap, loads `overlay` + `br_netfilter` kernel modules
 - Configures containerd with systemd cgroup driver
-- Installs `kubeadm`, `kubelet`, `kubectl` (v1.29, version-locked)
+- Installs `kubeadm`, `kubelet`, `kubectl` v1.29 (version-locked)
 
 ```bash
 ./scripts/bootstrap-nodes.sh
-# Bootstraps all 6 nodes in parallel, reports per-node status
 ```
 
-Then initialize the cluster:
+Then initialize the cluster on the first control plane node:
+
 ```bash
-# On first control plane node
 kubeadm init --control-plane-endpoint "<NLB_DNS>:6443" \
   --upload-certs --pod-network-cidr=192.168.0.0/16
 
 # Install Calico CNI
 kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
-# Join remaining control plane nodes and workers with kubeadm join
+# Join remaining control plane nodes and workers
+kubeadm join ...
 ```
 
 ---
@@ -118,7 +127,7 @@ kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 | Logging | Loki + Promtail | `k8s/logging/` |
 | Tracing | Jaeger | `k8s/tracing/` |
 | Service Mesh | Istio (mTLS, canary, circuit breaker, rate limit) | `k8s/service-mesh/` |
-| Security | Falco (custom rules) + Trivy + Network Policies | `k8s/security/` |
+| Security | Falco + Trivy + Network Policies | `k8s/security/` |
 | Autoscaling | HPA + VPA + PDB | `k8s/autoscaling/` |
 | Backup | Velero | `k8s/backup/` |
 | GitOps | ArgoCD | `k8s/gitops/` + `gitops/applications/` |
@@ -127,19 +136,7 @@ kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
 ---
 
-## GitOps with ArgoCD
-
-All workloads are managed declaratively. ArgoCD Application CRDs in `gitops/applications/` point to subdirectories in `k8s/` as their source — any `git push` triggers a sync.
-
-```bash
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-kubectl apply -f gitops/applications/
-```
-
----
-
-## Cluster Management
+## Quick Commands
 
 ```bash
 # Start/stop all EC2 instances (cost saving)
@@ -149,16 +146,31 @@ kubectl apply -f gitops/applications/
 # SSH to bastion
 ssh -i ~/.ssh/<key>.pem ubuntu@<bastion-ip>
 
-# SSH to control plane via bastion (ProxyJump)
+# SSH to control plane via bastion
 ssh -i ~/.ssh/<key>.pem -J ubuntu@<bastion-ip> ubuntu@<control-plane-private-ip>
+
+# Apply a specific layer
+kubectl apply -R -f k8s/monitoring/
+kubectl apply -R -f k8s/service-mesh/
+kubectl apply -R -f k8s/security/
 ```
 
 ---
 
-## Key Design Decisions
+## GitOps (ArgoCD)
 
-- **Self-managed over EKS** — full control over the control plane, etcd, and Kubernetes version; deeper understanding of cluster internals
-- **HA control plane** — 3 control plane nodes across 3 AZs behind an NLB; etcd quorum survives single-node failure
-- **Private workers** — worker nodes have no public IPs; all access is through the bastion or NLB
-- **Calico CNI** — BGP-based pod networking with IPIP encapsulation; security groups configured for BGP (port 179) and IPIP (protocol 4)
-- **Modular Terraform** — each infrastructure concern is an isolated module with its own variables and outputs
+ArgoCD Application CRDs in `gitops/applications/` point to subdirectories in `k8s/` as their source:
+
+- `hipster-shop.yaml` → `k8s/applications/hipster-shop`
+- `monitoring.yaml` → `k8s/monitoring`
+- `logging.yaml` → `k8s/logging`
+- `service-mesh.yaml` → `k8s/service-mesh`
+- `security.yaml` → `k8s/security`
+- `autoscaling.yaml` → `k8s/autoscaling`
+- `tracing.yaml` → `k8s/tracing`
+
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -f gitops/applications/
+```
