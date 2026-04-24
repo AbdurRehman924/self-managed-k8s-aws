@@ -2,8 +2,6 @@
 
 > Provisioned and operated a production-grade, self-managed Kubernetes cluster on AWS EC2 — without EKS. Built the full infrastructure from scratch using Terraform, bootstrapped nodes with kubeadm, and deployed a complete cloud-native observability and security stack.
 
-**[View on GitHub](https://github.com/AbdurRehman924/self-managed-k8s-aws)**
-
 ---
 
 ## What This Project Demonstrates
