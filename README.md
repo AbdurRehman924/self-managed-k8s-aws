@@ -37,7 +37,7 @@ self-managed-k8s-aws/
 │   ├── bootstrap-nodes.sh       # Install kubeadm/kubelet/kubectl on all nodes
 │   └── cluster.sh               # Start/stop EC2 instances
 └── docs/
-    ├── LEARNING-PROGRESS.md
+    ├── PROGRESS.md
     └── Traffic-flow.md
 ```
 
