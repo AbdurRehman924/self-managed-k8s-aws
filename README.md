@@ -118,6 +118,48 @@ kubeadm join ...
 
 ---
 
+## Application
+
+The hipster-shop app consists of 11 microservices deployed to the `hipster-shop` namespace:
+
+| Service | Language |
+|---|---|
+| frontend | Go |
+| cartservice | C# |
+| productcatalogservice | Go |
+| currencyservice | Node.js |
+| paymentservice | Node.js |
+| shippingservice | Go |
+| emailservice | Python |
+| checkoutservice | Go |
+| recommendationservice | Python |
+| adservice | Java |
+| loadgenerator | Python/Locust |
+
+---
+
+## Phases
+
+| Phase | Topic | K8s Area |
+|---|---|---|
+| 1 | Foundation & Infrastructure | Cluster setup, namespaces |
+| 2 | Observability & Monitoring | Prometheus, Grafana |
+| 3 | Security & Compliance | Falco, Trivy, Network Policies |
+| 4 | Service Mesh & Networking | Istio, mTLS, traffic management |
+| 5 | GitOps & Automation | ArgoCD |
+| 6 | Centralized Logging | Loki, Promtail |
+| 7 | Autoscaling & Performance | HPA, VPA, PDB |
+| 8 | Advanced Traffic Management | Canary, A/B, circuit breaker |
+| 9 | Backup & Disaster Recovery | Velero |
+| 10 | Chaos Engineering | Chaos Mesh |
+| 11 | Cost Optimization | Kubecost |
+| 12 | Advanced Security | OPA, Pod Security Standards |
+| 13 | Multi-Environment Setup | Kustomize overlays |
+| 14 | Distributed Tracing | Jaeger |
+| 15 | CI/CD Integration | GitHub Actions |
+
+---
+
 ## Kubernetes Stack
 
 | Layer | Tool | Manifests |
